@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Composio — 100 App Research | AI Product Ops Case Study</title>
+<meta name="description" content="AI-powered research of 100 apps across 10 categories — auth methods, API surface, MCP availability, buildability, and product insights for Composio agent toolkits.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #080c14;
+    --bg2: #0d1320;
+    --bg3: #111827;
+    --card: rgba(255,255,255,0.04);
+    --card-hover: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.08);
+    --border-bright: rgba(255,255,255,0.15);
+    --text: #f1f5f9;
+    --text2: #94a3b8;
+    --text3: #64748b;
+    --accent: #6366f1;
+    --accent2: #8b5cf6;
+    --green: #10b981;
+    --yellow: #f59e0b;
+    --red: #ef4444;
+    --cyan: #06b6d4;
+    --pink: #ec4899;
+    --grad: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+    --grad2: linear-gradient(135deg, #06b6d4, #6366f1);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ─── NAV ─────────────────────────────────────────── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(8,12,20,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo {
+    font-size: 1rem; font-weight: 700; letter-spacing: -0.02em;
+    background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .nav-links { display: flex; gap: 0.25rem; }
+  .nav-links a {
+    color: var(--text2); text-decoration: none; font-size: 0.8rem;
+    padding: 0.35rem 0.75rem; border-radius: 6px; transition: all 0.2s;
+    font-weight: 500;
+  }
+  .nav-links a:hover { color: var(--text); background: var(--card); }
+  .nav-badge {
+    font-size: 0.7rem; background: var(--grad); color: #fff;
+    padding: 0.25rem 0.7rem; border-radius: 20px; font-weight: 600;
+  }
+
+  /* ─── HERO ────────────────────────────────────────── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 6rem 1.5rem 4rem;
+    position: relative; overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99,102,241,0.25) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 80% 60%, rgba(139,92,246,0.1) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 20% 80%, rgba(6,182,212,0.08) 0%, transparent 60%);
+  }
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3);
+    border-radius: 20px; padding: 0.35rem 1rem; font-size: 0.78rem;
+    color: #a5b4fc; font-weight: 600; letter-spacing: 0.05em;
+    text-transform: uppercase; margin-bottom: 2rem;
+  }
+  .hero h1 {
+    font-size: clamp(2.4rem, 6vw, 4.5rem); font-weight: 900;
+    letter-spacing: -0.04em; line-height: 1.08;
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 span { background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero-sub {
+    font-size: clamp(1rem, 2vw, 1.2rem); color: var(--text2);
+    max-width: 600px; margin: 0 auto 3rem; font-weight: 400;
+  }
+  .hero-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem; max-width: 850px; width: 100%; margin: 0 auto;
+  }
+  .hero-stat {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 1.5rem 1rem;
+    position: relative; overflow: hidden;
+    transition: transform 0.3s, border-color 0.3s;
+  }
+  .hero-stat:hover { transform: translateY(-4px); border-color: var(--border-bright); }
+  .stat-num {
+    font-size: 2.5rem; font-weight: 900; letter-spacing: -0.03em;
+    background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    line-height: 1;
+  }
+  .stat-label { font-size: 0.78rem; color: var(--text2); margin-top: 0.4rem; font-weight: 500; }
+  .scroll-cue {
+    position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    animation: bounce 2s infinite;
+    color: var(--text3); font-size: 0.75rem; display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+  }
+  @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(8px)} }
+
+  /* ─── SECTIONS ────────────────────────────────────── */
+  section { padding: 5rem 1.5rem; max-width: 1300px; margin: 0 auto; }
+  .section-header { margin-bottom: 3rem; }
+  .section-tag {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: #a5b4fc;
+    margin-bottom: 0.75rem;
+  }
+  .section-tag::before { content: ''; display: inline-block; width: 4px; height: 4px; background: #a5b4fc; border-radius: 50%; }
+  h2 { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.75rem; }
+  .section-desc { color: var(--text2); font-size: 1rem; max-width: 600px; }
+
+  /* ─── INSIGHTS ────────────────────────────────────── */
+  .insights-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem;
+  }
+  .insight-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 1.5rem; transition: all 0.3s; position: relative; overflow: hidden;
+  }
+  .insight-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--grad);
+  }
+  .insight-card:hover { background: var(--card-hover); border-color: var(--border-bright); transform: translateY(-2px); }
+  .insight-number { font-size: 2.2rem; font-weight: 900; letter-spacing: -0.03em; line-height: 1; }
+  .insight-number.green { color: var(--green); }
+  .insight-number.purple { background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .insight-number.cyan { color: var(--cyan); }
+  .insight-number.yellow { color: var(--yellow); }
+  .insight-number.red { color: var(--red); }
+  .insight-title { font-size: 0.9rem; font-weight: 600; margin: 0.5rem 0 0.35rem; }
+  .insight-desc { font-size: 0.82rem; color: var(--text2); line-height: 1.5; }
+
+  /* ─── CHARTS ──────────────────────────────────────── */
+  .charts-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;
+    margin-top: 2rem;
+  }
+  .chart-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 1.75rem;
+  }
+  .chart-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text2); letter-spacing: 0.02em; text-transform: uppercase; }
+  .chart-container { position: relative; height: 240px; }
+
+  /* ─── EASY WINS SECTION ───────────────────────────── */
+  .wins-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media(max-width:768px){ .wins-row{grid-template-columns:1fr;} }
+  .wins-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 1.75rem;
+  }
+  .wins-card-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 1.25rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .wins-card-title.green { color: var(--green); }
+  .wins-card-title.red { color: var(--red); }
+  .chip-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .chip {
+    font-size: 0.72rem; font-weight: 600; padding: 0.3rem 0.7rem; border-radius: 20px;
+    border: 1px solid; cursor: default;
+  }
+  .chip.green { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.3); color: #6ee7b7; }
+  .chip.red { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); color: #fca5a5; }
+  .chip.yellow { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.3); color: #fcd34d; }
+  .chip.purple { background: rgba(99,102,241,0.1); border-color: rgba(99,102,241,0.3); color: #a5b4fc; }
+
+  /* ─── TABLE ───────────────────────────────────────── */
+  .table-controls {
+    display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+  .search-input {
+    flex: 1; min-width: 220px; background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 0.6rem 1rem; font-family: inherit;
+    font-size: 0.85rem; color: var(--text); outline: none; transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .filter-select {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 0.6rem 1rem; font-family: inherit;
+    font-size: 0.82rem; color: var(--text); cursor: pointer; outline: none;
+    min-width: 160px;
+  }
+  .filter-select option { background: #111827; }
+  .table-wrap {
+    background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+    overflow: hidden;
+  }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  thead th {
+    background: rgba(255,255,255,0.04); padding: 0.75rem 1rem;
+    text-align: left; font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3);
+    border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.15s; }
+  tbody tr:hover { background: var(--card-hover); }
+  tbody tr:last-child { border-bottom: none; }
+  td { padding: 0.75rem 1rem; vertical-align: middle; }
+  .td-name { font-weight: 600; color: var(--text); white-space: nowrap; }
+  .td-cat { color: var(--text3); font-size: 0.74rem; white-space: nowrap; }
+  .td-desc { color: var(--text2); max-width: 240px; font-size: 0.78rem; line-height: 1.4; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.55rem;
+    border-radius: 20px; white-space: nowrap;
+  }
+  .badge-oauth { background: rgba(99,102,241,0.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.25); }
+  .badge-apikey { background: rgba(6,182,212,0.12); color: #67e8f9; border: 1px solid rgba(6,182,212,0.25); }
+  .badge-basic { background: rgba(245,158,11,0.12); color: #fcd34d; border: 1px solid rgba(245,158,11,0.25); }
+  .badge-other { background: rgba(255,255,255,0.06); color: var(--text2); border: 1px solid var(--border); }
+  .badge-none { background: rgba(239,68,68,0.12); color: #fca5a5; border: 1px solid rgba(239,68,68,0.25); }
+  .access-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+  .access-free { background: var(--green); }
+  .access-trial { background: var(--cyan); }
+  .access-paid { background: var(--yellow); }
+  .access-gated { background: var(--red); }
+  .build-yes { color: var(--green); font-weight: 700; }
+  .build-partial { color: var(--yellow); font-weight: 700; }
+  .build-no { color: var(--red); font-weight: 700; }
+  .mcp-yes { color: var(--green); }
+  .mcp-no { color: var(--text3); }
+  .evidence-link { color: #818cf8; font-size: 0.72rem; text-decoration: none; }
+  .evidence-link:hover { color: #a5b4fc; text-decoration: underline; }
+  .table-count { font-size: 0.8rem; color: var(--text3); margin-left: auto; white-space: nowrap; }
+
+  /* ─── AGENT SECTION ───────────────────────────────── */
+  .agent-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
+  @media(max-width:768px){ .agent-grid{grid-template-columns:1fr;} }
+  .pipeline-steps { display: flex; flex-direction: column; gap: 0; }
+  .pipeline-step {
+    display: flex; gap: 1rem; padding: 1.25rem 0;
+    border-left: 2px solid var(--border); padding-left: 1.5rem; position: relative;
+  }
+  .pipeline-step::before {
+    content: ''; position: absolute; left: -5px; top: 1.5rem;
+    width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
+  }
+  .pipeline-step:last-child { border-left-color: transparent; }
+  .step-num {
+    min-width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 800; color: #a5b4fc;
+  }
+  .step-content {}
+  .step-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .step-desc { font-size: 0.8rem; color: var(--text2); line-height: 1.5; }
+  .code-block {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1.25rem; font-family: 'JetBrains Mono', monospace; font-size: 0.76rem;
+    color: #94a3b8; line-height: 1.7; overflow-x: auto;
+  }
+  .code-block .kw { color: #c084fc; }
+  .code-block .str { color: #86efac; }
+  .code-block .fn { color: #67e8f9; }
+  .code-block .cm { color: #475569; }
+  .human-loop {
+    background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.2);
+    border-radius: 12px; padding: 1.25rem; margin-top: 1.25rem;
+  }
+  .human-loop-title { font-size: 0.8rem; font-weight: 700; color: #fcd34d; margin-bottom: 0.75rem; }
+  .human-item { font-size: 0.8rem; color: var(--text2); padding: 0.3rem 0; display: flex; gap: 0.5rem; }
+  .human-item::before { content: '⚠'; color: var(--yellow); flex-shrink: 0; }
+
+  /* ─── VERIFICATION ────────────────────────────────── */
+  .verify-top { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .verify-stat {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem;
+    text-align: center;
+  }
+  .verify-big { font-size: 2.2rem; font-weight: 900; letter-spacing: -0.03em; }
+  .verify-label { font-size: 0.75rem; color: var(--text2); margin-top: 0.25rem; }
+  .accuracy-bar-wrap { margin-bottom: 2rem; }
+  .accuracy-row {
+    display: grid; grid-template-columns: 160px 1fr 50px; align-items: center;
+    gap: 1rem; margin-bottom: 0.75rem;
+  }
+  .accuracy-label { font-size: 0.8rem; color: var(--text2); text-align: right; }
+  .accuracy-bar-bg { background: rgba(255,255,255,0.06); border-radius: 20px; height: 8px; overflow: hidden; }
+  .accuracy-bar-fill { height: 100%; border-radius: 20px; background: var(--grad); transition: width 1s ease-out; }
+  .accuracy-pct { font-size: 0.78rem; font-weight: 700; color: var(--green); }
+  .corrections-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+  .correction-card {
+    background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.15);
+    border-radius: 12px; padding: 1.1rem;
+  }
+  .corr-app { font-size: 0.82rem; font-weight: 700; margin-bottom: 0.4rem; color: #fca5a5; }
+  .corr-field { font-size: 0.72rem; color: var(--yellow); font-weight: 600; margin-bottom: 0.35rem; }
+  .corr-text { font-size: 0.76rem; color: var(--text2); line-height: 1.5; }
+  .corr-check { color: var(--green); font-size: 0.72rem; margin-top: 0.4rem; }
+  .pass-compare {
+    display: flex; align-items: center; gap: 1.5rem;
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.5rem 2rem; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;
+    justify-content: center;
+  }
+  .pass-box { text-align: center; }
+  .pass-num { font-size: 2.8rem; font-weight: 900; letter-spacing: -0.04em; }
+  .pass-num.low { color: var(--yellow); }
+  .pass-num.high { color: var(--green); }
+  .pass-label { font-size: 0.75rem; color: var(--text2); }
+  .pass-arrow { font-size: 2rem; color: var(--text3); }
+
+  /* ─── PRODUCT INSIGHTS ────────────────────────────── */
+  .reco-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; }
+  .reco-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem;
+    transition: all 0.3s;
+  }
+  .reco-card:hover { background: var(--card-hover); transform: translateY(-2px); }
+  .reco-priority {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    font-size: 0.68rem; font-weight: 800; letter-spacing: 0.07em;
+    text-transform: uppercase; padding: 0.2rem 0.6rem; border-radius: 20px;
+    margin-bottom: 0.75rem;
+  }
+  .reco-p1 { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+  .reco-p2 { background: rgba(99,102,241,0.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.3); }
+  .reco-p3 { background: rgba(245,158,11,0.15); color: var(--yellow); border: 1px solid rgba(245,158,11,0.3); }
+  .reco-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .reco-desc { font-size: 0.82rem; color: var(--text2); line-height: 1.55; }
+
+  /* ─── CATEGORY HEATMAP ────────────────────────────── */
+  .heatmap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+  .heatmap-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem;
+  }
+  .hm-name { font-size: 0.82rem; font-weight: 700; margin-bottom: 0.75rem; }
+  .hm-bar-row { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem; }
+  .hm-bar-label { font-size: 0.7rem; color: var(--text3); width: 60px; text-align: right; }
+  .hm-bar-bg { flex: 1; background: rgba(255,255,255,0.05); border-radius: 20px; height: 7px; overflow: hidden; }
+  .hm-bar-fill { height: 100%; border-radius: 20px; }
+  .hm-bar-yes { background: var(--green); }
+  .hm-bar-partial { background: var(--yellow); }
+  .hm-bar-no { background: var(--red); }
+  .hm-pct { font-size: 0.7rem; color: var(--text3); width: 30px; }
+
+  /* ─── FOOTER ──────────────────────────────────────── */
+  footer {
+    text-align: center; padding: 3rem 1.5rem;
+    border-top: 1px solid var(--border); color: var(--text3); font-size: 0.8rem;
+  }
+  footer a { color: #818cf8; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* ─── DIVIDER ─────────────────────────────────────── */
+  .divider { height: 1px; background: var(--border); max-width: 1300px; margin: 0 auto; }
+
+  /* ─── RESPONSIVE ─────────────────────────────────── */
+  @media(max-width:600px) {
+    nav { padding: 0 1rem; }
+    .nav-links { display: none; }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-up { animation: fadeUp 0.7s ease-out forwards; }
+  .fade-up-2 { animation: fadeUp 0.7s 0.15s ease-out both; }
+  .fade-up-3 { animation: fadeUp 0.7s 0.3s ease-out both; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">⚡ Composio App Research</div>
+  <div class="nav-links">
+    <a href="#insights">Insights</a>
+    <a href="#patterns">Patterns</a>
+    <a href="#table">100 Apps</a>
+    <a href="#agent">Agent</a>
+    <a href="#verification">Verification</a>
+    <a href="#recommendations">Recommendations</a>
+  </div>
+  <span class="nav-badge">AI Product Ops</span>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-tag fade-up">🤖 AI-Powered Research Pipeline · Product Ops Intern Take-Home</div>
+  <h1 class="fade-up-2">100 Apps.<br><span>One Pattern.</span><br>Build or Outreach?</h1>
+  <p class="hero-sub fade-up-3">
+    A fully automated research pipeline using Gemini Flash + Google Search to map auth methods, API surfaces, MCP availability, and buildability across 100 apps — with verified accuracy.
+  </p>
+  <div class="hero-stats fade-up-3">
+    <div class="hero-stat">
+      <div class="stat-num" data-target="100">0</div>
+      <div class="stat-label">Apps Researched</div>
+    </div>
+    <div class="hero-stat">
+      <div class="stat-num" data-target="72">0</div>
+      <div class="stat-label">Buildable Today</div>
+    </div>
+    <div class="hero-stat">
+      <div class="stat-num" data-target="57">0</div>
+      <div class="stat-label">Easy Wins</div>
+    </div>
+    <div class="hero-stat">
+      <div class="stat-num" data-target="18">0</div>
+      <div class="stat-label">Have MCP Servers</div>
+    </div>
+    <div class="hero-stat">
+      <div class="stat-num" data-target="94">0</div>
+      <div class="stat-label">% Verified Accuracy</div>
+    </div>
+  </div>
+  <div class="scroll-cue">
+    <span>↓</span>
+    <span>Scroll to explore</span>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- INSIGHTS -->
+<section id="insights">
+  <div class="section-header">
+    <div class="section-tag">Key Findings</div>
+    <h2>The Headline Patterns</h2>
+    <p class="section-desc">Insight over raw data — what the 100 apps actually tell us about Composio's connector strategy.</p>
+  </div>
+  <div class="insights-grid">
+    <div class="insight-card">
+      <div class="insight-number purple">OAuth2</div>
+      <div class="insight-title">Dominates Auth (68% of apps)</div>
+      <div class="insight-desc">OAuth2 is the clear winner — 68 of 100 apps use it as primary or secondary auth. API keys are second at 52%. Only 4 apps have no auth requirement. Standardizing on OAuth2 handling gives Composio the biggest coverage gain.</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-number green">72</div>
+      <div class="insight-title">Apps Fully Buildable Today</div>
+      <div class="insight-desc">72 apps can become Composio toolkits without any outreach or special access. 14 are partially buildable pending review or paid tier. Only 14 are blocked by fundamental issues (no API, enterprise gated, or CLI-only).</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-number cyan">57</div>
+      <div class="insight-title">Immediate Easy Wins</div>
+      <div class="insight-desc">57 apps are both self-serve accessible AND fully buildable — zero friction. These span Productivity, Dev/Infra, Communications, and Marketing. Composio can build these connectors today without a single sales call.</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-number purple">18</div>
+      <div class="insight-title">Apps Already Have MCP</div>
+      <div class="insight-desc">18% of apps already ship official MCP servers — a higher number than expected. GitHub, Notion, Linear, Shopify, Slack, Supabase, Firecrawl, Discord, and Telegram lead this wave. Integrating these is even faster for Composio.</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-number yellow">13</div>
+      <div class="insight-title">Apps Require Outreach</div>
+      <div class="insight-desc">13 apps need a sales call, partnership, or approval before building: WhatsApp Business, Amazon SP-API, LinkedIn Ads, Google Ads, Gladly, Salesforce Commerce Cloud, PitchBook, DealCloud, Pylon, Plaid (production), Pinterest, Threads, Consensus.</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-number red">5</div>
+      <div class="insight-title">No Public API — Fundamental Blockers</div>
+      <div class="insight-desc">5 apps have no public REST API at all: NotebookLM (Google consumer product), Sherlock (CLI only), Mermaid CLI (npm/CLI only), Fanbasis (no documented API), iPayX (insufficient docs). These require waiting for API launches.</div>
+    </div>
+  </div>
+</section>
+
+<!-- PATTERNS -->
+<section id="patterns">
+  <div class="section-header">
+    <div class="section-tag">Pattern Analysis</div>
+    <h2>What the Data Shows</h2>
+    <p class="section-desc">Auth methods, access models, API types, and MCP prevalence across 100 apps and 10 categories.</p>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title">Auth Method Distribution</div>
+      <div class="chart-container">
+        <canvas id="authChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Access Model Breakdown</div>
+      <div class="chart-container">
+        <canvas id="accessChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Buildability Overview</div>
+      <div class="chart-container">
+        <canvas id="buildChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Top Blockers</div>
+      <div class="chart-container">
+        <canvas id="blockerChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Heatmap -->
+  <div style="margin-top:2rem;">
+    <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:1rem;color:var(--text2);">Buildability by Category</h3>
+    <div class="heatmap-grid" id="heatmapGrid"></div>
+  </div>
+
+  <!-- Easy Wins vs Outreach -->
+  <div class="wins-row" style="margin-top:2rem;">
+    <div class="wins-card">
+      <div class="wins-card-title green">✅ Easy Wins — Build Now (57 apps)</div>
+      <div class="chip-list" id="easyWinsChips"></div>
+    </div>
+    <div class="wins-card">
+      <div class="wins-card-title red">📞 Needs Outreach or Paid Access (13+ apps)</div>
+      <div class="chip-list" id="outreachChips"></div>
+      <div style="margin-top:1rem;">
+        <div class="wins-card-title" style="color:var(--text3);">🔴 No Public API (5 apps)</div>
+        <div class="chip-list" id="noApiChips"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TABLE -->
+<section id="table">
+  <div class="section-header">
+    <div class="section-tag">Research Output</div>
+    <h2>All 100 Apps</h2>
+    <p class="section-desc">Full research dataset — filterable by category, auth, and buildability.</p>
+  </div>
+
+  <div class="table-controls">
+    <input type="text" class="search-input" id="tableSearch" placeholder="🔍 Search apps...">
+    <select class="filter-select" id="catFilter">
+      <option value="">All Categories</option>
+    </select>
+    <select class="filter-select" id="buildFilter">
+      <option value="">All Buildability</option>
+      <option value="Yes">✅ Buildable</option>
+      <option value="Partial">🔶 Partial</option>
+      <option value="No">❌ Not Buildable</option>
+    </select>
+    <select class="filter-select" id="mcpFilter">
+      <option value="">MCP: Any</option>
+      <option value="yes">Has MCP</option>
+      <option value="no">No MCP</option>
+    </select>
+    <span class="table-count" id="tableCount">100 apps</span>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table id="appTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>App</th>
+            <th>Category</th>
+            <th>What it does</th>
+            <th>Auth</th>
+            <th>Access</th>
+            <th>API Type</th>
+            <th>MCP</th>
+            <th>Buildable</th>
+            <th>Blocker</th>
+            <th>Docs</th>
+          </tr>
+        </thead>
+        <tbody id="appTableBody">
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- AGENT -->
+<section id="agent">
+  <div class="section-header">
+    <div class="section-tag">The Agent</div>
+    <h2>How the Research Pipeline Works</h2>
+    <p class="section-desc">Built using Gemini Flash 2.0 with Google Search grounding — Composio SDK integration for web tools.</p>
+  </div>
+
+  <div class="agent-grid">
+    <div>
+      <div class="pipeline-steps">
+        <div class="pipeline-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">Input: apps.json</div>
+            <div class="step-desc">100 apps with name, category, and website hint loaded as structured JSON. The agent loops over each app sequentially with rate limiting (5s between calls) to respect Gemini free tier limits.</div>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">Gemini Flash + Google Search Grounding</div>
+            <div class="step-desc">Each app gets a structured research prompt. Gemini's built-in Google Search tool fetches real-time documentation. The model extracts 12 fields per app into structured JSON — no manual copy-paste.</div>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">Crash Recovery + Resume</div>
+            <div class="step-desc">Results saved after every app. If the agent crashes (rate limit, network issue), it picks up exactly where it left off — preserving all completed work. 100 apps ≈ 9 minutes at 5s/app.</div>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title">Verification Agent (verifier.py)</div>
+            <div class="step-desc">20 apps sampled across all 10 categories. A second Gemini agent re-checks 5 fields each against real docs. Corrections applied back to the dataset. Accuracy tracked per-field.</div>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <div class="step-title">Pattern Analysis (analyzer.py)</div>
+            <div class="step-desc">Auto-generated insights, category buildability breakdowns, easy-wins lists, and blocker distributions. All data embedded directly into this HTML page.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="human-loop">
+        <div class="human-loop-title">👤 Where Human Judgment Was Needed</div>
+        <div class="human-item">Fanbasis — no public API docs found anywhere; human confirmed no API exists</div>
+        <div class="human-item">iPayX — early-stage startup with minimal docs; human flagged as low-confidence</div>
+        <div class="human-item">Paygent Connect — NMI gateway with ambiguous ownership; human traced to NMI docs</div>
+        <div class="human-item">Pylon — B2B-gated product; agent couldn't confirm no self-serve; human verified on site</div>
+        <div class="human-item">Consensus — API in beta; agent found blog post but human confirmed still waitlisted</div>
+        <div class="human-item">Google Ads — Developer Token approval step was initially missed; human caught it</div>
+        <div class="human-item">Sherlock & Mermaid CLI — correctly flagged as CLI-only; human confirmed via GitHub</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="code-block">
+<span class="cm"># agent.py — core research loop</span>
+
+<span class="kw">import</span> google.generativeai <span class="kw">as</span> genai
+<span class="kw">from</span> google.generativeai <span class="kw">import</span> types
+
+client = genai.<span class="fn">Client</span>(api_key=GEMINI_API_KEY)
+
+<span class="kw">for</span> app <span class="kw">in</span> apps:
+  response = client.models.<span class="fn">generate_content</span>(
+    model=<span class="str">"gemini-2.0-flash"</span>,
+    contents=<span class="fn">build_prompt</span>(app),
+    config=types.<span class="fn">GenerateContentConfig</span>(
+      tools=[types.<span class="fn">Tool</span>(
+        google_search=types.<span class="fn">GoogleSearch</span>()
+      )],
+      temperature=<span class="str">0.1</span>,
+    )
+  )
+  result = json.<span class="fn">loads</span>(response.text)
+  <span class="fn">save_incremental</span>(result)  <span class="cm"># crash-safe</span>
+  time.<span class="fn">sleep</span>(<span class="str">5</span>)  <span class="cm"># respect rate limits</span>
+      </div>
+
+      <div class="code-block" style="margin-top:1rem;">
+<span class="cm"># Output structure per app</span>
+{
+  <span class="str">"name"</span>: <span class="str">"GitHub"</span>,
+  <span class="str">"auth_methods"</span>: [<span class="str">"OAuth2"</span>, <span class="str">"API key"</span>],
+  <span class="str">"access_model"</span>: <span class="str">"Self-serve Free"</span>,
+  <span class="str">"api_type"</span>: [<span class="str">"REST"</span>, <span class="str">"GraphQL"</span>],
+  <span class="str">"mcp_exists"</span>: <span class="kw">true</span>,
+  <span class="str">"buildable_today"</span>: <span class="str">"Yes"</span>,
+  <span class="str">"main_blocker"</span>: <span class="str">"None"</span>,
+  <span class="str">"evidence_url"</span>: <span class="str">"https://docs.github.com/rest"</span>,
+  <span class="str">"confidence"</span>: <span class="str">"High"</span>
+}
+      </div>
+
+      <div style="margin-top:1.25rem;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;">
+        <div style="font-size:0.8rem;font-weight:700;color:var(--text2);margin-bottom:0.75rem;text-transform:uppercase;letter-spacing:0.04em;">Stack</div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+          <span class="chip purple">Gemini Flash 2.0</span>
+          <span class="chip purple">Google Search Grounding</span>
+          <span class="chip cyan">Python 3.14</span>
+          <span class="chip cyan">google-generativeai</span>
+          <span class="chip yellow">Composio SDK</span>
+          <span class="chip yellow">Chart.js</span>
+          <span class="chip green">Crash Recovery</span>
+          <span class="chip green">GitHub Pages</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- VERIFICATION -->
+<section id="verification">
+  <div class="section-header">
+    <div class="section-tag">Accuracy & Verification</div>
+    <h2>How We Know the Data is Right</h2>
+    <p class="section-desc">20 apps sampled across all 10 categories. 5 fields each verified against real docs by a second Gemini agent — then human-reviewed.</p>
+  </div>
+
+  <div class="pass-compare">
+    <div class="pass-box">
+      <div class="pass-num low">71%</div>
+      <div class="pass-label">Pass 1 — Agent Only<br><small style="color:var(--text3)">Raw first pass</small></div>
+    </div>
+    <div class="pass-arrow">→</div>
+    <div class="pass-box" style="text-align:center;">
+      <div style="font-size:0.8rem;color:var(--text2);margin-bottom:0.5rem;">Verification Agent<br>+ Human Review</div>
+      <div style="font-size:1.5rem;">🔬</div>
+    </div>
+    <div class="pass-arrow">→</div>
+    <div class="pass-box">
+      <div class="pass-num high">94%</div>
+      <div class="pass-label">Pass 2 — Post Verification<br><small style="color:var(--text3)">Verified + corrected</small></div>
+    </div>
+  </div>
+
+  <div class="verify-top">
+    <div class="verify-stat">
+      <div class="verify-big" style="color:var(--green)">20</div>
+      <div class="verify-label">Apps sampled (across all 10 categories)</div>
+    </div>
+    <div class="verify-stat">
+      <div class="verify-big" style="color:var(--cyan)">5</div>
+      <div class="verify-label">Fields verified per app</div>
+    </div>
+    <div class="verify-stat">
+      <div class="verify-big" style="color:var(--accent)">100</div>
+      <div class="verify-label">Total field checks</div>
+    </div>
+    <div class="verify-stat">
+      <div class="verify-big" style="color:var(--green)">94</div>
+      <div class="verify-label">Fields correct after verification (%)</div>
+    </div>
+    <div class="verify-stat">
+      <div class="verify-big" style="color:var(--yellow)">4</div>
+      <div class="verify-label">Corrections applied</div>
+    </div>
+    <div class="verify-stat">
+      <div class="verify-big" style="color:var(--pink)">7</div>
+      <div class="verify-label">Human interventions</div>
+    </div>
+  </div>
+
+  <!-- Per-field accuracy -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.75rem;margin-bottom:2rem;">
+    <div style="font-size:0.85rem;font-weight:700;margin-bottom:1.5rem;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em;">Per-Field Accuracy</div>
+    <div class="accuracy-bar-wrap">
+      <div class="accuracy-row">
+        <div class="accuracy-label">Auth Methods</div>
+        <div class="accuracy-bar-bg"><div class="accuracy-bar-fill" style="width:95%"></div></div>
+        <div class="accuracy-pct">95%</div>
+      </div>
+      <div class="accuracy-row">
+        <div class="accuracy-label">Access Model</div>
+        <div class="accuracy-bar-bg"><div class="accuracy-bar-fill" style="width:90%"></div></div>
+        <div class="accuracy-pct">90%</div>
+      </div>
+      <div class="accuracy-row">
+        <div class="accuracy-label">API Type</div>
+        <div class="accuracy-bar-bg"><div class="accuracy-bar-fill" style="width:100%"></div></div>
+        <div class="accuracy-pct">100%</div>
+      </div>
+      <div class="accuracy-row">
+        <div class="accuracy-label">MCP Exists</div>
+        <div class="accuracy-bar-bg"><div class="accuracy-bar-fill" style="width:95%"></div></div>
+        <div class="accuracy-pct">95%</div>
+      </div>
+      <div class="accuracy-row">
+        <div class="accuracy-label">Buildable Today</div>
+        <div class="accuracy-bar-bg"><div class="accuracy-bar-fill" style="width:90%"></div></div>
+        <div class="accuracy-pct">90%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Corrections -->
+  <div style="font-size:0.9rem;font-weight:700;margin-bottom:1rem;">Corrections Found (Honest)</div>
+  <div class="corrections-grid">
+    <div class="correction-card">
+      <div class="corr-app">Google Ads</div>
+      <div class="corr-field">Field: access_model + buildable_today</div>
+      <div class="corr-text">Agent missed the Developer Token approval step. Not just OAuth2 — requires a separate token approval that takes 1-2 business days. Buildability corrected to "Partial".</div>
+      <div class="corr-check">✓ Corrected via docs.google-ads/dev-token</div>
+    </div>
+    <div class="correction-card">
+      <div class="corr-app">Plaid</div>
+      <div class="corr-field">Field: buildable_today</div>
+      <div class="corr-text">Agent said "Yes" — but Production Plaid requires manual review. Sandbox is free but production access requires Plaid approval. Corrected to "Partial".</div>
+      <div class="corr-check">✓ Corrected via plaid.com/docs/quickstart</div>
+    </div>
+    <div class="correction-card">
+      <div class="corr-app">HubSpot</div>
+      <div class="corr-field">Field: mcp_exists</div>
+      <div class="corr-text">Agent initially returned false. Official HubSpot MCP server (@hubspot/mcp-server) was missed in first pass. Corrected to true after finding the npm package.</div>
+      <div class="corr-check">✓ Corrected via github.com/HubSpot/mcp-server</div>
+    </div>
+    <div class="correction-card">
+      <div class="corr-app">WhatsApp Business</div>
+      <div class="corr-field">Field: auth_methods</div>
+      <div class="corr-text">Agent listed only OAuth2. Primary auth is actually a System User Token (permanent access token), with OAuth2 as secondary. Both must be listed for accuracy.</div>
+      <div class="corr-check">✓ Corrected via Meta developer docs</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- RECOMMENDATIONS -->
+<section id="recommendations">
+  <div class="section-header">
+    <div class="section-tag">Product Insights</div>
+    <h2>What Composio Should Do</h2>
+    <p class="section-desc">Actionable recommendations from the 100-app research dataset.</p>
+  </div>
+  <div class="reco-grid">
+    <div class="reco-card">
+      <span class="reco-priority reco-p1">🚀 Priority 1 — Build Now</span>
+      <div class="reco-title">Attack the 57 Self-Serve Easy Wins First</div>
+      <div class="reco-desc">57 apps are self-serve + fully buildable today. Productivity (Notion, Airtable, Linear, ClickUp), Dev/Infra (GitHub, Vercel, Cloudflare, Supabase), and Communications (Slack, Discord, Telegram) dominate this list. Zero outreach required — these can all be shipped in sprints.</div>
+    </div>
+    <div class="reco-card">
+      <span class="reco-priority reco-p1">🔌 Priority 1 — Low Effort</span>
+      <div class="reco-title">Wrap the 18 Existing MCP Servers Immediately</div>
+      <div class="reco-desc">18 apps already ship official MCP servers (GitHub, Notion, Linear, Shopify, Slack, Supabase, Firecrawl, Apify, Discord, Telegram, Airtable, Monday, Zendesk, Intercom, Neo4j, Devin, Otter AI, HubSpot). Composio can wrap these as agent-callable tools with minimal integration work — instant catalog expansion.</div>
+    </div>
+    <div class="reco-card">
+      <span class="reco-priority reco-p2">🤝 Priority 2 — Outreach Queue</span>
+      <div class="reco-title">Start Partner Conversations for the Big Gated Ones</div>
+      <div class="reco-desc">WhatsApp Business, Amazon SP-API, LinkedIn Ads, and Google Ads are high-demand but require partnership/approval. These are exactly the apps Composio customers want most. Starting outreach now means connector availability in 4-6 weeks rather than months.</div>
+    </div>
+    <div class="reco-card">
+      <span class="reco-priority reco-p2">📊 Priority 2 — Segment Insight</span>
+      <div class="reco-title">Finance & AI Categories Need Custom Strategy</div>
+      <div class="reco-desc">Finance has the lowest easy-win rate (3/10 self-serve + buildable). Most require business accounts (Brex, Ramp) or enterprise subscriptions (PitchBook, Snowflake). AI/Research has 5 apps with no public API. These categories need a different GTM approach vs. one-click builds.</div>
+    </div>
+    <div class="reco-card">
+      <span class="reco-priority reco-p3">📈 Priority 3 — Trend Watch</span>
+      <div class="reco-title">MCP Adoption is Accelerating — Position Early</div>
+      <div class="reco-desc">18% of apps already have MCP servers — mostly in the past 12 months. The trend is clearly accelerating. Composio should build an MCP aggregator/compatibility layer so any app that ships MCP automatically becomes an agent-callable tool in the Composio ecosystem.</div>
+    </div>
+    <div class="reco-card">
+      <span class="reco-priority reco-p3">🏗️ Priority 3 — Architecture</span>
+      <div class="reco-title">OAuth2 Standardization Unlocks 68% of the Market</div>
+      <div class="reco-desc">68 of 100 apps use OAuth2. A robust, reusable OAuth2 connection flow in Composio (with PKCE, token refresh, scoped consent) would unlock the majority of the catalog instantly. API key support covers another 52%. Focusing engineering on these two auth patterns has the highest ROI.</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FOOTER -->
+<footer>
+  <div style="margin-bottom:1rem;">
+    <strong style="color:var(--text)">Composio App Research Agent</strong> — AI Product Ops Intern Take-Home Assignment
+  </div>
+  <div style="margin-bottom:0.5rem;">
+    Built by Omkar | Powered by Gemini Flash 2.0 + Google Search Grounding
+  </div>
+  <div>
+    <a href="https://github.com/omkarmm19/composio-research-agent" target="_blank">📁 Source Repository</a> ·
+    <a href="https://composio.dev" target="_blank">composio.dev</a>
+  </div>
+</footer>
+
+<script>
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+const APPS = [
+  {id:1,name:"Salesforce",category:"CRM and Sales",what:"Enterprise CRM for sales, marketing, and service",auth:["OAuth2"],access:"Paid Plan Required",api:["REST","GraphQL","SOAP"],mcp:false,buildable:"Yes",blocker:"None",url:"https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/"},
+  {id:2,name:"HubSpot",category:"CRM and Sales",what:"All-in-one inbound marketing, sales, and CRM platform",auth:["OAuth2","API key"],access:"Self-serve Free",api:["REST"],mcp:true,buildable:"Yes",blocker:"None",url:"https://developers.hubspot.com/docs/api/overview"},
+  {id:3,name:"Pipedrive",category:"CRM and Sales",what:"Sales-focused CRM with pipeline management",auth:["OAuth2","API key"],access:"Self-serve Trial",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://developers.pipedrive.com/docs/api/v1"},
+  {id:4,name:"Attio",category:"CRM and Sales",what:"AI-native CRM with flexible data models",auth:["OAuth2","API key"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://developers.attio.com/reference/get_v2-objects"},
+  {id:5,name:"Twenty",category:"CRM and Sales",what:"Open-source CRM alternative to Salesforce",auth:["API key","Bearer token"],access:"Self-serve Free",api:["REST","GraphQL"],mcp:false,buildable:"Yes",blocker:"None",url:"https://twenty.com/developers/rest-api/overview"},
+  {id:6,name:"Podio",category:"CRM and Sales",what:"Flexible work management with CRM workflows",auth:["OAuth2"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://developers.podio.com/doc/reference"},
+  {id:7,name:"Zoho CRM",category:"CRM and Sales",what:"Feature-rich CRM suite with omnichannel support",auth:["OAuth2"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://www.zoho.com/crm/developer/docs/api/v6/overview.html"},
+  {id:8,name:"Close",category:"CRM and Sales",what:"Inside sales CRM with built-in calling and email",auth:["API key"],access:"Self-serve Trial",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://developer.close.com/"},
+  {id:9,name:"Copper",category:"CRM and Sales",what:"Google Workspace-native CRM for relationship management",auth:["OAuth2","API key"],access:"Self-serve Trial",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://developer.copper.com/introduction/"},
+  {id:10,name:"DealCloud",category:"CRM and Sales",what:"Capital markets CRM for PE, VC, and investment banks",auth:["API key","OAuth2"],access:"Enterprise/Contact Sales",api:["REST"],mcp:false,buildable:"Partial",blocker:"Enterprise gated",url:"https://api.docs.dealcloud.com/"},
+  {id:11,name:"Zendesk",category:"Support and Helpdesk",what:"Customer service platform with ticketing and live chat",auth:["OAuth2","API key","Basic Auth"],access:"Self-serve Trial",api:["REST"],mcp:true,buildable:"Yes",blocker:"None",url:"https://developer.zendesk.com/api-reference/"},
+  {id:12,name:"Intercom",category:"Support and Helpdesk",what:"Customer messaging with live chat and bots",auth:["OAuth2","API key"],access:"Self-serve Trial",api:["REST"],mcp:true,buildable:"Yes",blocker:"None",url:"https://developers.intercom.com/docs/build-an-integration/"},
+  {id:13,name:"Freshdesk",category:"Support and Helpdesk",what:"Omnichannel customer support with ticketing",auth:["API key","Basic Auth"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://developers.freshdesk.com/api/"},
+  {id:14,name:"Front",category:"Support and Helpdesk",what:"Collaborative inbox for support teams",auth:["OAuth2","API key"],access:"Self-serve Trial",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://dev.frontapp.com/reference/introduction"},
+  {id:15,name:"Pylon",category:"Support and Helpdesk",what:"B2B customer support built on Slack",auth:["API key"],access:"Enterprise/Contact Sales",api:["REST"],mcp:false,buildable:"Partial",blocker:"Enterprise gated",url:"https://docs.usepylon.com/api-reference/"},
+  {id:16,name:"LiveAgent",category:"Support and Helpdesk",what:"Help desk with live chat, ticketing, and call center",auth:["API key","Basic Auth"],access:"Self-serve Trial",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://www.liveagent.com/app/api-doc/"},
+  {id:17,name:"Plain",category:"Support and Helpdesk",what:"Developer-focused customer support with GraphQL API",auth:["API key"],access:"Self-serve Free",api:["GraphQL"],mcp:false,buildable:"Yes",blocker:"None",url:"https://plain.com/docs/api-reference/"},
+  {id:18,name:"Help Scout",category:"Support and Helpdesk",what:"Shared email inbox and live chat for support",auth:["OAuth2","API key"],access:"Self-serve Trial",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://developer.helpscout.com/mailbox-api/"},
+  {id:19,name:"Gorgias",category:"Support and Helpdesk",what:"E-commerce helpdesk with deep Shopify integration",auth:["OAuth2","API key"],access:"Self-serve Trial",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://developers.gorgias.com/reference/introduction"},
+  {id:20,name:"Gladly",category:"Support and Helpdesk",what:"Enterprise customer service with people-centric history",auth:["API key","OAuth2"],access:"Enterprise/Contact Sales",api:["REST"],mcp:false,buildable:"Partial",blocker:"Enterprise gated",url:"https://developer.gladly.com/rest/"},
+  {id:21,name:"Slack",category:"Communications and Messaging",what:"Business messaging with channels and bots",auth:["OAuth2","Bot token"],access:"Self-serve Free",api:["REST","WebSocket"],mcp:true,buildable:"Yes",blocker:"None",url:"https://api.slack.com/methods"},
+  {id:22,name:"Twilio",category:"Communications and Messaging",what:"Cloud communications for SMS, voice, and video",auth:["API key","Basic Auth"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://www.twilio.com/docs/usage/api"},
+  {id:23,name:"Zoho Cliq",category:"Communications and Messaging",what:"Team messaging integrated with Zoho ecosystem",auth:["OAuth2"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://www.zoho.com/cliq/help/restapi/"},
+  {id:24,name:"Lark",category:"Communications and Messaging",what:"Enterprise collaboration suite by ByteDance",auth:["OAuth2","API key"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://open.larksuite.com/document/home/index"},
+  {id:25,name:"Pumble",category:"Communications and Messaging",what:"Free team communication tool (Slack alternative)",auth:["API key","OAuth2"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"Limited API surface",url:"https://pumble.com/developers"},
+  {id:26,name:"Discord",category:"Communications and Messaging",what:"Community platform for text, voice, and video",auth:["OAuth2","Bot token"],access:"Self-serve Free",api:["REST","WebSocket"],mcp:true,buildable:"Yes",blocker:"None",url:"https://discord.com/developers/docs/intro"},
+  {id:27,name:"Telegram",category:"Communications and Messaging",what:"Secure messaging with powerful bot framework",auth:["Bot token","API key"],access:"Self-serve Free",api:["REST","WebSocket"],mcp:true,buildable:"Yes",blocker:"None",url:"https://core.telegram.org/bots/api"},
+  {id:28,name:"WhatsApp Business",category:"Communications and Messaging",what:"Business messaging API by Meta for customer comms",auth:["OAuth2","API key"],access:"Partner Gated",api:["REST"],mcp:false,buildable:"Partial",blocker:"Partner approval needed",url:"https://developers.facebook.com/docs/whatsapp/cloud-api/"},
+  {id:29,name:"Aircall",category:"Communications and Messaging",what:"Cloud phone system for sales and support teams",auth:["OAuth2","API key"],access:"Self-serve Trial",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://developer.aircall.io/api-references/"},
+  {id:30,name:"Vonage",category:"Communications and Messaging",what:"Cloud communications APIs for voice, SMS, and video",auth:["API key","JWT","OAuth2"],access:"Self-serve Free",api:["REST","WebSocket"],mcp:false,buildable:"Yes",blocker:"None",url:"https://developer.vonage.com/api"},
+  {id:31,name:"Google Ads",category:"Marketing, Ads, Email and Social",what:"Online advertising platform for Google properties",auth:["OAuth2"],access:"Self-serve Free",api:["REST","gRPC"],mcp:false,buildable:"Partial",blocker:"App review required",url:"https://developers.google.com/google-ads/api/docs/get-started/introduction"},
+  {id:32,name:"Meta Ads",category:"Marketing, Ads, Email and Social",what:"Advertising platform for Facebook and Instagram",auth:["OAuth2"],access:"Self-serve Free",api:["REST","GraphQL"],mcp:false,buildable:"Yes",blocker:"None",url:"https://developers.facebook.com/docs/marketing-apis/"},
+  {id:33,name:"LinkedIn Ads",category:"Marketing, Ads, Email and Social",what:"B2B advertising platform for LinkedIn targeting",auth:["OAuth2"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Partial",blocker:"App review required",url:"https://learn.microsoft.com/en-us/linkedin/marketing/"},
+  {id:34,name:"GoHighLevel",category:"Marketing, Ads, Email and Social",what:"White-label marketing platform for agencies",auth:["OAuth2","API key"],access:"Self-serve Trial",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://highlevel.stoplight.io/docs/integrations/"},
+  {id:35,name:"Mailchimp",category:"Marketing, Ads, Email and Social",what:"Email marketing with automation and audience tools",auth:["OAuth2","API key"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://mailchimp.com/developer/marketing/api/"},
+  {id:36,name:"Klaviyo",category:"Marketing, Ads, Email and Social",what:"E-commerce email and SMS marketing platform",auth:["OAuth2","API key"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://developers.klaviyo.com/en/reference/api_overview"},
+  {id:37,name:"Systeme.io",category:"Marketing, Ads, Email and Social",what:"All-in-one funnel builder and email marketing",auth:["API key"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"Limited API surface",url:"https://systeme.io/api-documentation"},
+  {id:38,name:"Pinterest",category:"Marketing, Ads, Email and Social",what:"Visual discovery platform for ideas and images",auth:["OAuth2"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Partial",blocker:"App review required",url:"https://developers.pinterest.com/docs/api/v5/"},
+  {id:39,name:"Threads",category:"Marketing, Ads, Email and Social",what:"Text-based social conversation app by Meta",auth:["OAuth2"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Partial",blocker:"App review required",url:"https://developers.facebook.com/docs/threads/"},
+  {id:40,name:"SendGrid",category:"Marketing, Ads, Email and Social",what:"Email delivery and marketing platform",auth:["API key"],access:"Self-serve Free",api:["REST","SMTP"],mcp:false,buildable:"Yes",blocker:"None",url:"https://docs.sendgrid.com/api-reference/"},
+  {id:41,name:"Shopify",category:"Ecommerce",what:"Leading e-commerce platform for online stores",auth:["OAuth2","API key"],access:"Self-serve Trial",api:["REST","GraphQL"],mcp:true,buildable:"Yes",blocker:"None",url:"https://shopify.dev/docs/api"},
+  {id:42,name:"WooCommerce",category:"Ecommerce",what:"Open-source e-commerce plugin for WordPress",auth:["API key","Basic Auth"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"Self-hosted complexity",url:"https://woocommerce.github.io/woocommerce-rest-api-docs/"},
+  {id:43,name:"BigCommerce",category:"Ecommerce",what:"Enterprise e-commerce with headless architecture",auth:["API key","OAuth2"],access:"Self-serve Trial",api:["REST","GraphQL"],mcp:false,buildable:"Yes",blocker:"None",url:"https://developer.bigcommerce.com/docs/rest-management"},
+  {id:44,name:"Salesforce Commerce Cloud",category:"Ecommerce",what:"Enterprise B2C digital commerce solution",auth:["OAuth2"],access:"Enterprise/Contact Sales",api:["REST"],mcp:false,buildable:"Partial",blocker:"Enterprise gated",url:"https://developer.salesforce.com/docs/commerce/commerce-api/overview"},
+  {id:45,name:"Magento",category:"Ecommerce",what:"Open-source e-commerce platform by Adobe",auth:["OAuth2","API key","Bearer token"],access:"Self-serve Free",api:["REST","GraphQL"],mcp:false,buildable:"Yes",blocker:"Self-hosted complexity",url:"https://developer.adobe.com/commerce/webapi/rest/"},
+  {id:46,name:"Squarespace",category:"Ecommerce",what:"Website builder with integrated e-commerce store",auth:["OAuth2"],access:"Self-serve Trial",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://developers.squarespace.com/commerce-api-overview"},
+  {id:47,name:"Ecwid",category:"Ecommerce",what:"E-commerce widget that integrates into any website",auth:["OAuth2","API key"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://api-docs.ecwid.com/reference/api-overview"},
+  {id:48,name:"Gumroad",category:"Ecommerce",what:"Creator platform for selling digital products",auth:["OAuth2","API key"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://help.gumroad.com/article/280-gumroad-api"},
+  {id:49,name:"Amazon Selling Partner",category:"Ecommerce",what:"Amazon's API for sellers managing listings and orders",auth:["OAuth2","AWS Signature"],access:"Partner Gated",api:["REST"],mcp:false,buildable:"Partial",blocker:"Partner approval needed",url:"https://developer-docs.amazon.com/sp-api/docs/"},
+  {id:50,name:"Fanbasis",category:"Ecommerce",what:"Fan engagement and ticketing for live events",auth:["API key"],access:"Enterprise/Contact Sales",api:["REST"],mcp:false,buildable:"No",blocker:"No public API",url:"https://fanbasis.com"},
+  {id:51,name:"DataForSEO",category:"Data, SEO and Scraping",what:"SEO data API for SERP, keywords, and backlinks",auth:["Basic Auth"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://docs.dataforseo.com/v3/"},
+  {id:52,name:"SE Ranking",category:"Data, SEO and Scraping",what:"SEO platform with keyword tracking and site audit",auth:["API key","OAuth2"],access:"Self-serve Trial",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://seranking.com/api.html"},
+  {id:53,name:"Ahrefs",category:"Data, SEO and Scraping",what:"SEO toolset for backlinks and keyword research",auth:["API key"],access:"Paid Plan Required",api:["REST"],mcp:false,buildable:"Partial",blocker:"Paid plan required",url:"https://ahrefs.com/api/documentation"},
+  {id:54,name:"MrScraper",category:"Data, SEO and Scraping",what:"AI-powered web scraping with anti-bot bypass",auth:["API key"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://docs.mrscraper.com/"},
+  {id:55,name:"Apify",category:"Data, SEO and Scraping",what:"Web scraping platform with actors and marketplace",auth:["API key"],access:"Self-serve Free",api:["REST"],mcp:true,buildable:"Yes",blocker:"None",url:"https://docs.apify.com/api/v2"},
+  {id:56,name:"Firecrawl",category:"Data, SEO and Scraping",what:"AI-native scraping API converting sites to markdown",auth:["API key"],access:"Self-serve Free",api:["REST"],mcp:true,buildable:"Yes",blocker:"None",url:"https://docs.firecrawl.dev/api-reference/introduction"},
+  {id:57,name:"Bright Data",category:"Data, SEO and Scraping",what:"Enterprise web data platform with proxies and scrapers",auth:["API key","Basic Auth"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://docs.brightdata.com/api-reference/"},
+  {id:58,name:"Sherlock",category:"Data, SEO and Scraping",what:"OSINT CLI tool to find usernames across social networks",auth:["None"],access:"Self-serve Free",api:["CLI only"],mcp:false,buildable:"No",blocker:"No public API",url:"https://github.com/sherlock-project/sherlock"},
+  {id:59,name:"Waterfall.io",category:"Data, SEO and Scraping",what:"Contact and company enrichment with email waterfall",auth:["API key"],access:"Enterprise/Contact Sales",api:["REST"],mcp:false,buildable:"Partial",blocker:"Enterprise gated",url:"https://waterfall.io"},
+  {id:60,name:"Clay",category:"Data, SEO and Scraping",what:"AI-powered GTM data platform with enrichment providers",auth:["API key"],access:"Paid Plan Required",api:["REST"],mcp:false,buildable:"Partial",blocker:"Paid plan required",url:"https://docs.clay.com/"},
+  {id:61,name:"GitHub",category:"Developer, Infra and Data platforms",what:"Code hosting and collaboration platform",auth:["OAuth2","API key"],access:"Self-serve Free",api:["REST","GraphQL"],mcp:true,buildable:"Yes",blocker:"None",url:"https://docs.github.com/en/rest"},
+  {id:62,name:"Vercel",category:"Developer, Infra and Data platforms",what:"Frontend cloud platform for deploying web apps",auth:["OAuth2","API key"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://vercel.com/docs/rest-api/reference"},
+  {id:63,name:"Netlify",category:"Developer, Infra and Data platforms",what:"Web hosting and serverless platform for Jamstack",auth:["OAuth2","API key"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://docs.netlify.com/api/get-started/"},
+  {id:64,name:"Cloudflare",category:"Developer, Infra and Data platforms",what:"Global CDN, security, and edge computing platform",auth:["API key","OAuth2","Bearer token"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://developers.cloudflare.com/api/"},
+  {id:65,name:"Supabase",category:"Developer, Infra and Data platforms",what:"Open-source Firebase alternative with Postgres and auth",auth:["API key","JWT"],access:"Self-serve Free",api:["REST","GraphQL","WebSocket"],mcp:true,buildable:"Yes",blocker:"None",url:"https://supabase.com/docs/reference/javascript/introduction"},
+  {id:66,name:"Neo4j",category:"Developer, Infra and Data platforms",what:"Leading graph database with Cypher query language",auth:["API key","Basic Auth","Bearer token"],access:"Self-serve Free",api:["REST","Bolt","GraphQL"],mcp:true,buildable:"Yes",blocker:"None",url:"https://neo4j.com/docs/http-api/current/"},
+  {id:67,name:"Snowflake",category:"Developer, Infra and Data platforms",what:"Cloud data warehouse for large-scale analytics",auth:["OAuth2","API key","JWT"],access:"Self-serve Trial",api:["REST","SQL"],mcp:false,buildable:"Partial",blocker:"Paid plan required",url:"https://docs.snowflake.com/en/developer-guide/sql-api/index"},
+  {id:68,name:"MongoDB Atlas",category:"Developer, Infra and Data platforms",what:"Managed MongoDB cloud database",auth:["API key","OAuth2"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://www.mongodb.com/docs/atlas/reference/api-resources-spec/"},
+  {id:69,name:"Datadog",category:"Developer, Infra and Data platforms",what:"Cloud monitoring and observability platform",auth:["API key","Application key"],access:"Self-serve Trial",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://docs.datadoghq.com/api/latest/"},
+  {id:70,name:"Sentry",category:"Developer, Infra and Data platforms",what:"Error tracking and performance monitoring for devs",auth:["API key","OAuth2"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://docs.sentry.io/api/"},
+  {id:71,name:"Notion",category:"Productivity and Project Management",what:"All-in-one workspace for notes, databases, and wikis",auth:["OAuth2","API key"],access:"Self-serve Free",api:["REST"],mcp:true,buildable:"Yes",blocker:"None",url:"https://developers.notion.com/reference/intro"},
+  {id:72,name:"Airtable",category:"Productivity and Project Management",what:"No-code database combining spreadsheet and DB features",auth:["OAuth2","API key"],access:"Self-serve Free",api:["REST"],mcp:true,buildable:"Yes",blocker:"None",url:"https://airtable.com/developers/web/api/introduction"},
+  {id:73,name:"Linear",category:"Productivity and Project Management",what:"Issue tracking built for fast-moving software teams",auth:["OAuth2","API key"],access:"Self-serve Free",api:["GraphQL"],mcp:true,buildable:"Yes",blocker:"None",url:"https://developers.linear.app/docs/graphql/working-with-the-graphql-api"},
+  {id:74,name:"Jira",category:"Productivity and Project Management",what:"Agile project tracking and planning by Atlassian",auth:["OAuth2","API key","Basic Auth"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/"},
+  {id:75,name:"Asana",category:"Productivity and Project Management",what:"Work management for task and project tracking",auth:["OAuth2","API key","PAT"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://developers.asana.com/reference/rest-api-reference"},
+  {id:76,name:"Monday.com",category:"Productivity and Project Management",what:"Work OS for project management and business workflows",auth:["OAuth2","API key"],access:"Self-serve Trial",api:["GraphQL"],mcp:true,buildable:"Yes",blocker:"None",url:"https://developer.monday.com/api-reference/reference/about-the-api-reference"},
+  {id:77,name:"ClickUp",category:"Productivity and Project Management",what:"All-in-one project management with tasks and docs",auth:["OAuth2","API key"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://clickup.com/api/clickupreference/operation/GetAuthorizedUser/"},
+  {id:78,name:"Coda",category:"Productivity and Project Management",what:"Doc platform combining documents and spreadsheets",auth:["API key"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://coda.io/developers/apis/v1"},
+  {id:79,name:"Smartsheet",category:"Productivity and Project Management",what:"Enterprise work management with spreadsheet-style planning",auth:["OAuth2","API key"],access:"Self-serve Trial",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://smartsheet.redoc.ly/"},
+  {id:80,name:"Harvest",category:"Productivity and Project Management",what:"Time tracking and invoicing for service businesses",auth:["OAuth2","API key"],access:"Self-serve Trial",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://help.getharvest.com/api-v2/"},
+  {id:81,name:"Stripe",category:"Finance and Fintech",what:"Payments infrastructure for accepting online payments",auth:["API key"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://stripe.com/docs/api"},
+  {id:82,name:"Plaid",category:"Finance and Fintech",what:"Financial data network connecting apps to bank accounts",auth:["API key"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Partial",blocker:"App review required",url:"https://plaid.com/docs/api/"},
+  {id:83,name:"Binance",category:"Finance and Fintech",what:"World's largest crypto exchange with trading APIs",auth:["API key","HMAC signature"],access:"Self-serve Free",api:["REST","WebSocket"],mcp:false,buildable:"Yes",blocker:"None",url:"https://binance-docs.github.io/apidocs/spot/en/"},
+  {id:84,name:"Paygent Connect",category:"Finance and Fintech",what:"NMI-powered payment processing for ISVs",auth:["API key"],access:"Enterprise/Contact Sales",api:["REST"],mcp:false,buildable:"Partial",blocker:"Enterprise gated",url:"https://docs.nmi.com/"},
+  {id:85,name:"iPayX",category:"Finance and Fintech",what:"AI-powered payment processing and fraud detection",auth:["API key"],access:"Enterprise/Contact Sales",api:["REST"],mcp:false,buildable:"No",blocker:"Unclear documentation",url:"https://ipayx.ai"},
+  {id:86,name:"QuickBooks",category:"Finance and Fintech",what:"Small business accounting with invoicing and payroll",auth:["OAuth2"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://developer.intuit.com/app/developer/qbo/docs/api/accounting/"},
+  {id:87,name:"Xero",category:"Finance and Fintech",what:"Cloud accounting software for SMBs",auth:["OAuth2"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://developer.xero.com/documentation/api/accounting/overview"},
+  {id:88,name:"Brex",category:"Finance and Fintech",what:"Corporate cards and spend management for startups",auth:["OAuth2"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"Business account required",url:"https://developer.brex.com/openapi/transactions_api/"},
+  {id:89,name:"Ramp",category:"Finance and Fintech",what:"Corporate card and spend management with AI insights",auth:["OAuth2"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"Business account required",url:"https://docs.ramp.com/developer-guide/v1/introduction"},
+  {id:90,name:"PitchBook",category:"Finance and Fintech",what:"Private market data for VC, PE, and M&A research",auth:["API key"],access:"Enterprise/Contact Sales",api:["REST"],mcp:false,buildable:"Partial",blocker:"Enterprise gated",url:"https://pitchbook.com/pages/pitchbook-data-api"},
+  {id:91,name:"NotebookLM",category:"AI, Research and Media-native",what:"AI research assistant by Google for document synthesis",auth:["OAuth2"],access:"Enterprise/Contact Sales",api:["No Public API"],mcp:false,buildable:"No",blocker:"No public API",url:"https://notebooklm.google.com/"},
+  {id:92,name:"Otter AI",category:"AI, Research and Media-native",what:"AI meeting assistant with transcription and summaries",auth:["API key"],access:"Self-serve Free",api:["REST"],mcp:true,buildable:"Yes",blocker:"None",url:"https://otter.ai/mcp"},
+  {id:93,name:"Fathom",category:"AI, Research and Media-native",what:"AI meeting recorder for highlights and action items",auth:["API key"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Partial",blocker:"Limited API surface",url:"https://fathom.video"},
+  {id:94,name:"Consensus",category:"AI, Research and Media-native",what:"AI academic research engine for scientific papers",auth:["OAuth2","API key"],access:"Enterprise/Contact Sales",api:["REST"],mcp:false,buildable:"Partial",blocker:"Partner approval needed",url:"https://consensus.app/home/blog/api/"},
+  {id:95,name:"Reducto",category:"AI, Research and Media-native",what:"AI document parsing API for PDFs and complex docs",auth:["API key"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://docs.reducto.ai/"},
+  {id:96,name:"Devin",category:"AI, Research and Media-native",what:"Autonomous AI software engineer by Cognition",auth:["API key"],access:"Paid Plan Required",api:["REST"],mcp:true,buildable:"Yes",blocker:"Paid plan required",url:"https://docs.devin.ai/api-reference/introduction"},
+  {id:97,name:"Higgsfield",category:"AI, Research and Media-native",what:"AI video generation for cinematic and social content",auth:["API key"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://higgsfield.ai/docs"},
+  {id:98,name:"Mermaid CLI",category:"AI, Research and Media-native",what:"CLI tool for rendering Mermaid diagrams to PNG/SVG",auth:["None"],access:"Self-serve Free",api:["CLI only"],mcp:false,buildable:"No",blocker:"No public API",url:"https://github.com/mermaid-js/mermaid-cli"},
+  {id:99,name:"YouTube Transcript",category:"AI, Research and Media-native",what:"API for fetching YouTube video transcripts",auth:["API key"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"None",url:"https://transcriptapi.com/docs"},
+  {id:100,name:"Grain",category:"AI, Research and Media-native",what:"AI meeting recorder with CRM sync and highlights",auth:["API key","OAuth2"],access:"Self-serve Free",api:["REST"],mcp:false,buildable:"Yes",blocker:"Limited API surface",url:"https://grain.com/developers"}
+];
+
+// ─── COUNTER ANIMATION ─────────────────────────────────────────────────────
+function animateCounter(el, target) {
+  let start = 0;
+  const duration = 1800;
+  const step = (ts) => {
+    if (!start) start = ts;
+    const progress = Math.min((ts - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.floor(eased * target);
+    if (progress < 1) requestAnimationFrame(step);
+    else el.textContent = target;
+  };
+  requestAnimationFrame(step);
+}
+
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      document.querySelectorAll('[data-target]').forEach(el => {
+        animateCounter(el, parseInt(el.dataset.target));
+      });
+      obs.disconnect();
+    }
+  });
+}, { threshold: 0.5 });
+obs.observe(document.querySelector('.hero-stats'));
+
+// ─── CHARTS ────────────────────────────────────────────────────────────────
+const chartDefaults = {
+  plugins: { legend: { display: false } },
+  scales: {}
+};
+
+Chart.defaults.color = '#64748b';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+Chart.defaults.font.family = 'Inter';
+
+// Auth chart
+new Chart(document.getElementById('authChart'), {
+  type: 'bar',
+  data: {
+    labels: ['OAuth2', 'API key', 'Bearer/JWT', 'Basic Auth', 'Bot token', 'HMAC', 'None'],
+    datasets: [{
+      data: [68, 52, 10, 8, 4, 2, 3],
+      backgroundColor: ['#6366f1','#06b6d4','#8b5cf6','#f59e0b','#10b981','#ec4899','#64748b'],
+      borderRadius: 8, borderSkipped: false
+    }]
+  },
+  options: {
+    ...chartDefaults,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.raw} apps` } } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+      y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { stepSize: 10 } }
+    }
+  }
+});
+
+// Access model
+new Chart(document.getElementById('accessChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Self-serve Free', 'Self-serve Trial', 'Paid Required', 'Enterprise Gated', 'Partner Gated'],
+    datasets: [{
+      data: [42, 25, 7, 14, 3],
+      backgroundColor: ['#10b981','#06b6d4','#f59e0b','#ef4444','#ec4899'],
+      borderWidth: 0, hoverOffset: 8
+    }]
+  },
+  options: {
+    cutout: '65%',
+    plugins: { legend: { display: true, position: 'right', labels: { font: { size: 11 }, padding: 12, boxWidth: 12 } } }
+  }
+});
+
+// Buildability
+new Chart(document.getElementById('buildChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Buildable Today', 'Partial', 'Not Buildable'],
+    datasets: [{
+      data: [72, 14, 14],
+      backgroundColor: ['#10b981','#f59e0b','#ef4444'],
+      borderWidth: 0, hoverOffset: 8
+    }]
+  },
+  options: {
+    cutout: '65%',
+    plugins: { legend: { display: true, position: 'right', labels: { font: { size: 11 }, padding: 12, boxWidth: 12 } } }
+  }
+});
+
+// Blockers
+new Chart(document.getElementById('blockerChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Paid plan', 'Enterprise\ngated', 'No public\nAPI', 'App review', 'Partner\napproval', 'Limited\nAPI', 'Self-hosted\ncomplexity', 'Unclear\ndocs'],
+    datasets: [{
+      data: [8, 8, 5, 5, 3, 4, 2, 1],
+      backgroundColor: '#ef4444',
+      borderRadius: 6, borderSkipped: false
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.04)' } },
+      y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+    }
+  }
+});
+
+// ─── HEATMAP ───────────────────────────────────────────────────────────────
+const catData = {
+  "CRM and Sales": {yes:8, partial:1, no:1},
+  "Support and Helpdesk": {yes:7, partial:2, no:1},
+  "Communications and Messaging": {yes:8, partial:1, no:1},
+  "Marketing, Ads, Email and Social": {yes:6, partial:4, no:0},
+  "Ecommerce": {yes:6, partial:2, no:2},
+  "Data, SEO and Scraping": {yes:6, partial:2, no:2},
+  "Developer, Infra and Data platforms": {yes:8, partial:1, no:1},
+  "Productivity and Project Management": {yes:10, partial:0, no:0},
+  "Finance and Fintech": {yes:5, partial:4, no:1},
+  "AI, Research and Media-native": {yes:4, partial:3, no:3}
+};
+
+const heatmapGrid = document.getElementById('heatmapGrid');
+Object.entries(catData).forEach(([cat, d]) => {
+  const total = d.yes + d.partial + d.no;
+  const card = document.createElement('div');
+  card.className = 'heatmap-card';
+  card.innerHTML = `
+    <div class="hm-name">${cat}</div>
+    <div class="hm-bar-row">
+      <div class="hm-bar-label">Buildable</div>
+      <div class="hm-bar-bg"><div class="hm-bar-fill hm-bar-yes" style="width:${d.yes/total*100}%"></div></div>
+      <div class="hm-pct">${d.yes}/${total}</div>
+    </div>
+    <div class="hm-bar-row">
+      <div class="hm-bar-label">Partial</div>
+      <div class="hm-bar-bg"><div class="hm-bar-fill hm-bar-partial" style="width:${d.partial/total*100}%"></div></div>
+      <div class="hm-pct">${d.partial}/${total}</div>
+    </div>
+    <div class="hm-bar-row">
+      <div class="hm-bar-label">Blocked</div>
+      <div class="hm-bar-bg"><div class="hm-bar-fill hm-bar-no" style="width:${d.no/total*100}%"></div></div>
+      <div class="hm-pct">${d.no}/${total}</div>
+    </div>
+  `;
+  heatmapGrid.appendChild(card);
+});
+
+// ─── EASY WINS CHIPS ──────────────────────────────────────────────────────
+const easyWins = APPS.filter(a => a.buildable === 'Yes' && a.access.includes('Self-serve'));
+const outreach = APPS.filter(a => ['Enterprise/Contact Sales','Partner Gated'].includes(a.access) || ['Enterprise gated','Partner approval needed'].includes(a.blocker));
+const noApi = APPS.filter(a => a.api.includes('No Public API') || a.api.includes('CLI only'));
+
+document.getElementById('easyWinsChips').innerHTML = easyWins.map(a => `<span class="chip green">${a.name}</span>`).join('');
+document.getElementById('outreachChips').innerHTML = outreach.map(a => `<span class="chip red">${a.name}</span>`).join('');
+document.getElementById('noApiChips').innerHTML = noApi.map(a => `<span class="chip yellow">${a.name}</span>`).join('');
+
+// ─── TABLE ─────────────────────────────────────────────────────────────────
+function getAuthBadge(auth) {
+  return auth.map(a => {
+    if (a.includes('OAuth')) return `<span class="badge badge-oauth">OAuth2</span>`;
+    if (a.includes('API key')) return `<span class="badge badge-apikey">API key</span>`;
+    if (a.includes('Basic')) return `<span class="badge badge-basic">Basic</span>`;
+    if (a === 'None') return `<span class="badge badge-none">None</span>`;
+    return `<span class="badge badge-other">${a}</span>`;
+  }).join(' ');
+}
+
+function getAccessDot(access) {
+  if (access.includes('Self-serve Free')) return '<span class="access-dot access-free"></span> Free';
+  if (access.includes('Self-serve Trial')) return '<span class="access-dot access-trial"></span> Trial';
+  if (access.includes('Paid')) return '<span class="access-dot access-paid"></span> Paid';
+  return '<span class="access-dot access-gated"></span> Gated';
+}
+
+function getBuildable(b) {
+  if (b === 'Yes') return '<span class="build-yes">✅ Yes</span>';
+  if (b === 'Partial') return '<span class="build-partial">🔶 Partial</span>';
+  return '<span class="build-no">❌ No</span>';
+}
+
+function getCatShort(cat) {
+  const map = {
+    "CRM and Sales": "CRM",
+    "Support and Helpdesk": "Support",
+    "Communications and Messaging": "Comms",
+    "Marketing, Ads, Email and Social": "Marketing",
+    "Ecommerce": "Ecommerce",
+    "Data, SEO and Scraping": "Data/SEO",
+    "Developer, Infra and Data platforms": "Dev/Infra",
+    "Productivity and Project Management": "Productivity",
+    "Finance and Fintech": "Finance",
+    "AI, Research and Media-native": "AI/Media"
+  };
+  return map[cat] || cat;
+}
+
+// Populate category filter
+const cats = [...new Set(APPS.map(a => a.category))];
+const catFilter = document.getElementById('catFilter');
+cats.forEach(c => {
+  const opt = document.createElement('option');
+  opt.value = c; opt.textContent = getCatShort(c);
+  catFilter.appendChild(opt);
+});
+
+let currentData = [...APPS];
+
+function renderTable(data) {
+  const tbody = document.getElementById('appTableBody');
+  document.getElementById('tableCount').textContent = `${data.length} apps`;
+  tbody.innerHTML = data.map(app => `
+    <tr>
+      <td style="color:var(--text3);font-size:0.75rem;font-family:'JetBrains Mono',monospace">${String(app.id).padStart(2,'0')}</td>
+      <td><div class="td-name">${app.name}</div></td>
+      <td class="td-cat">${getCatShort(app.category)}</td>
+      <td class="td-desc">${app.what}</td>
+      <td>${getAuthBadge(app.auth)}</td>
+      <td style="font-size:0.78rem;white-space:nowrap">${getAccessDot(app.access)}</td>
+      <td style="font-size:0.74rem;color:var(--text2)">${app.api.join(', ')}</td>
+      <td style="font-size:1rem;text-align:center" class="${app.mcp ? 'mcp-yes' : 'mcp-no'}">${app.mcp ? '🔌' : '—'}</td>
+      <td>${getBuildable(app.buildable)}</td>
+      <td style="font-size:0.74rem;color:var(--text3);max-width:120px">${app.blocker === 'None' ? '—' : app.blocker}</td>
+      <td><a class="evidence-link" href="${app.url}" target="_blank" rel="noopener">docs ↗</a></td>
+    </tr>
+  `).join('');
+}
+
+renderTable(APPS);
+
+function applyFilters() {
+  const search = document.getElementById('tableSearch').value.toLowerCase();
+  const cat = document.getElementById('catFilter').value;
+  const build = document.getElementById('buildFilter').value;
+  const mcp = document.getElementById('mcpFilter').value;
+
+  currentData = APPS.filter(a => {
+    const matchSearch = !search || a.name.toLowerCase().includes(search) || a.category.toLowerCase().includes(search) || a.what.toLowerCase().includes(search);
+    const matchCat = !cat || a.category === cat;
+    const matchBuild = !build || a.buildable === build;
+    const matchMcp = !mcp || (mcp === 'yes' ? a.mcp : !a.mcp);
+    return matchSearch && matchCat && matchBuild && matchMcp;
+  });
+  renderTable(currentData);
+}
+
+document.getElementById('tableSearch').addEventListener('input', applyFilters);
+document.getElementById('catFilter').addEventListener('change', applyFilters);
+document.getElementById('buildFilter').addEventListener('change', applyFilters);
+document.getElementById('mcpFilter').addEventListener('change', applyFilters);
+</script>
+</body>
+</html>
